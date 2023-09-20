@@ -106,4 +106,21 @@ router.patch('/update/(:id)', [
         }
     })
 })
+
+router.delete('/delete/(:id)', function(req, res){
+    let id = req.params.id;
+    connection.query(`delete from mahasiswa where id_m = ${id}`, function (err, rows) {
+        if(err){
+            return res.status(500).json({
+                status: false,
+                message: 'Server Error',
+            })
+        }else{
+            return res.status(500).json({
+                status: true,
+                message: 'Data has ben delete!',
+            })
+        }
+    })
+})
 module.exports = router;
