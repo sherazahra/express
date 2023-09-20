@@ -24,7 +24,7 @@ router.get('/', function (req, res){
 
 router.post('/store', [
     body('nama').notEmpty(),
-    body('nrp').notEmpty()
+    body('nrp').notEmpty()  
 ],(req, res) => {
     const error = validationResult(req);
     if(!error.isEmpty()){
@@ -46,6 +46,31 @@ router.post('/store', [
             return res.status(201).json({
                 satus: true,
                 message: 'Success..!',
+                data: rows[0]
+            })
+        }
+    })
+})
+
+router.get('/(:id)', function (req, res) {
+    let id = req.params.id;
+    connection.query(`select * from mahasiswa where id_m = ${id}`, function (err, rows) {
+        if(err){
+            return res.status(500).json({
+                status: false,
+                message: 'Server Error',
+            })
+        }
+        if(rows.length <=0){
+            return res.status(404).json({
+                status: false,
+                message: 'Not Found',
+            })
+        }
+        else{
+            return res.status(200).json({
+                status: true,
+                message: 'Data Mahasiswa',
                 data: rows[0]
             })
         }
