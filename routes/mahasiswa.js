@@ -4,7 +4,7 @@ const router = express.Router();
 const {body, validationResult } = require('express-validator');
 
 const connection = require('../config/db.js');
-
+const fs = require('fs')
 const multer = require('multer')
 const path = require('path')
 
@@ -96,7 +96,7 @@ router.get('/(:id)', function (req, res) {
     })
 })
 
-router.patch('/update/(:id)', [
+router.patch('/update/(:id)',upload.single("gambar"), [
     body('nama').notEmpty(),
     body('nrp').notEmpty(),
     body('jurusan').notEmpty()
@@ -108,10 +108,33 @@ router.patch('/update/(:id)', [
         });
     }
     let id = req.params.id;
+    let gambar = req.file ? req.file.filename : null;
+    
+    connection.query(`select * from mahasiswa where id_m = ${id}`, function (err, rows) {
+        if(err){
+            return res.status(500).json({
+                status: false,
+                message: 'Server Error',
+            })
+        }
+        if(rows.length <=0){
+            return res.status(404).json({
+                status: false,
+                message: 'Not Found',
+            })
+        }
+        const namaFileLama = rows[0].gambar;
+
+        if (namaFileLama && gambar) {
+            const pathFileLama = path.join(__dirname, '../public', namaFileLama);
+            fs.unlinkSync(pathFileLama);
+        }
+
     let Data = {
         nama: req.body.nama,
         nrp: req.body.nrp,
-        id_jurusan: req.body.jurusan
+        id_jurusan: req.body.jurusan,
+        gambar: gambar
     }
     connection.query(`update mahasiswa set ? where id_m = ${id}`, Data, function (err, rows) {
         if(err){
@@ -127,7 +150,7 @@ router.patch('/update/(:id)', [
         }
     })
 })
-
+})
 router.delete('/delete/(:id)', function(req, res){
     let id = req.params.id;
     connection.query(`delete from mahasiswa where id_m = ${id}`, function (err, rows) {
