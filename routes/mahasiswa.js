@@ -17,7 +17,16 @@ const storage = multer.diskStorage({
         cb(null, Date.now() + path.extname(file.originalname))
     }
 })
-const upload = multer({storage: storage})
+
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png' || file.mimetype === 'application/pdf') {
+        cb(null, true);
+    } else {
+        cb(new Error('Jenis file tidak diizinkan'), false);
+    }
+};
+
+const upload = multer({storage: storage, fileFilter: fileFilter})
 
 router.get('/', function (req, res){
     connection.query('select a.nama, b.nama_jurusan as jurusan from mahasiswa a join jurusan b on b.id_j=a.id_jurusan order by a.id_m desc', function(err, rows){
