@@ -151,20 +151,40 @@ router.patch('/update/(:id)',upload.single("gambar"), [
     })
 })
 })
-router.delete('/delete/(:id)', function(req, res){
+router.delete('/delete/:id',function(req, res){
     let id = req.params.id;
-    connection.query(`delete from mahasiswa where id_m = ${id}`, function (err, rows) {
+    connection.query(`select * from mahasiswa where id_m = ${id}`, function (err, rows) {
         if(err){
             return res.status(500).json({
                 status: false,
-                message: 'Server Error',
+                message: 'server eror',
+            })
+        }
+        if(rows.length <=0){
+            return res.status(404).json({
+                staus: false,
+                message: 'not Found',
+            })
+        }
+        const namaFileLama = rows[0].gambar;
+
+        if(namaFileLama) {
+            const pathFileLama = path.join(__dirname, '../public', namaFileLama);
+            fs.unlinkSync(pathFileLama);
+        }
+    connection.query(`delete from mahasiswa where id_m = ${id}`, function (err, rows){
+        if(err){
+            return res.status(500).json({
+                status: false,
+                message: 'Server failed', 
             })
         }else{
-            return res.status(500).json({
+            return res.status(200).json({
                 status: true,
-                message: 'Data has ben delete!',
+                message: 'Data Berhasil Dihapus',
             })
         }
     })
+})
 })
 module.exports = router;
