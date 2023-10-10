@@ -5,6 +5,20 @@ const {body, validationResult } = require('express-validator');
 
 const connection = require('../config/db.js');
 
+const multer = require('multer')
+const path = require('path')
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'public')
+    },
+    filename: (req, file, cb) => {
+        console.log(file)
+        cb(null, Date.now() + path.extname(file.originalname))
+    }
+})
+const upload = multer({storage: storage})
+
 router.get('/', function (req, res){
     connection.query('select a.nama, b.nama_jurusan as jurusan from mahasiswa a join jurusan b on b.id_j=a.id_jurusan order by a.id_m desc', function(err, rows){
         if(err){
@@ -23,37 +37,39 @@ router.get('/', function (req, res){
     })
 });
 
-router.post('/store', [
+router.post('/store', upload.single("gambar"), [
     body('nama').notEmpty(),
     body('nrp').notEmpty(),  
     body('jurusan').notEmpty()  
-],(req, res) => {
-    const error = validationResult(req);
-    if(!error.isEmpty()){
+], (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
         return res.status(422).json({
-            error: error.array()
+            errors: errors.array()
         })
     }
     let Data = {
         nama: req.body.nama,
         nrp: req.body.nrp,
-        id_jurusan: req.body.jurusan
+        id_jurusan: req.body.jurusan,
+        gambar: req.file.filename
     }
-    connection.query('insert into mahasiswa set ?', Data, function(err, rows){
-        if(err){
+    connection.query('INSERT INTO mahasiswa SET ?', Data, function(err, result){
+        if (err) {
             return res.status(500).json({
                 status: false,
                 message: 'Server Error',
             })
-        }else{
+        } else {
             return res.status(201).json({
-                satus: true,
+                status: true,
                 message: 'Success..!',
-                data: rows[0]
+                data: Data 
             })
         }
     })
 })
+
 
 router.get('/(:id)', function (req, res) {
     let id = req.params.id;
