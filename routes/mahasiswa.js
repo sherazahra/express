@@ -46,7 +46,7 @@ router.get('/', function (req, res){
     })
 });
 
-router.post('/store', upload.single("gambar"), [
+router.post('/store', upload.fields([{name: 'gambar', maxCount: 1}, {name: 'swa_foto',maxCount: 1}]), [
     body('nama').notEmpty(),
     body('nrp').notEmpty(),  
     body('jurusan').notEmpty()  
@@ -61,7 +61,8 @@ router.post('/store', upload.single("gambar"), [
         nama: req.body.nama,
         nrp: req.body.nrp,
         id_jurusan: req.body.jurusan,
-        gambar: req.file.filename
+        gambar: req.files.gambar[0].filename, 
+        swa_foto: req.files.swa_foto[0].filename 
     }
     connection.query('INSERT INTO mahasiswa SET ?', Data, function(err, result){
         if (err) {
