@@ -29,9 +29,9 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({storage: storage, fileFilter: fileFilter})
 
 router.get('/', function (req, res){
-    connection.query('SELECT a.nama, b.nama_jurusan as jurusan, a.gambar, a.swa_foto ' +
+    connection.query('SELECT a.nama, b.nama_jurusan as jurusan, a.gambar, a.swa_foto, a.nrp, a.id_m, a.id_j' +
     ' from mahasiswa a join jurusan b' +
-    ' on b.id_j=a.id_jurusan ORDER BY a.id_m DESC ', function(err, rows){
+    ' on b.id_j=a.id_j ORDER BY a.id_m DESC ', function(err, rows){
         if(err){
             return res.status(500).json({
                 status: false,
@@ -62,7 +62,7 @@ router.post('/store', upload.fields([{name: 'gambar', maxCount: 1}, {name: 'swa_
     let Data = {
         nama: req.body.nama,
         nrp: req.body.nrp,
-        id_jurusan: req.body.jurusan,
+        id_j: req.body.jurusan,
         gambar: req.files.gambar[0].filename, 
         swa_foto: req.files.swa_foto[0].filename 
     }
@@ -129,6 +129,7 @@ router.patch('/update/(:id)',upload.fields([{ name: 'gambar', maxCount: 1 }, { n
             return res.status(500).json({
                 status: false,
                 message: 'Server Error',
+                error: err
             })
         }
         if(rows.length <=0){
@@ -151,15 +152,21 @@ router.patch('/update/(:id)',upload.fields([{ name: 'gambar', maxCount: 1 }, { n
     let Data = {
         nama: req.body.nama,
         nrp: req.body.nrp,
-        id_jurusan: req.body.jurusan,
-        gambar: gambar,
-        swa_foto: swa_foto
+        id_j: req.body.jurusan,
     }
+    if (gambar) {
+        Data.gambar = gambar;
+    }
+    if (swa_foto) {
+        Data.swa_foto = swa_foto;
+    }
+
     connection.query(`update mahasiswa set ? where id_m = ${id}`, Data, function (err, rows) {
         if(err){
             return res.status(500).json({
                 status: false,
                 message: 'Server Error',
+                error: err  
             })
         }else {
             return res.status(200).json({
