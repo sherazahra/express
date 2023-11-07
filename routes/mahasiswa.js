@@ -28,7 +28,10 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({storage: storage, fileFilter: fileFilter})
 
-router.get('/', function (req, res){
+const authenticateToken = require('../routes/auth/midleware/authenticateToken')
+
+
+router.get('/', authenticateToken,function (req, res){
     connection.query('SELECT a.nama, b.nama_jurusan as jurusan, a.gambar, a.swa_foto, a.nrp, a.id_m, a.id_j' +
     ' from mahasiswa a join jurusan b' +
     ' on b.id_j=a.id_j ORDER BY a.id_m DESC ', function(err, rows){
@@ -48,7 +51,7 @@ router.get('/', function (req, res){
     })
 });
 
-router.post('/store', upload.fields([{name: 'gambar', maxCount: 1}, {name: 'swa_foto',maxCount: 1}]), [
+router.post('/store', authenticateToken,upload.fields([{name: 'gambar', maxCount: 1}, {name: 'swa_foto',maxCount: 1}]), [
     body('nama').notEmpty(),
     body('nrp').notEmpty(),  
     body('jurusan').notEmpty()  
@@ -108,7 +111,7 @@ router.get('/(:id)', function (req, res) {
     })
 })
 
-router.patch('/update/(:id)',upload.fields([{ name: 'gambar', maxCount: 1 }, { name: 'swa_foto', maxCount: 1 }]), [
+router.patch('/update/(:id)',authenticateToken,upload.fields([{ name: 'gambar', maxCount: 1 }, { name: 'swa_foto', maxCount: 1 }]), [
     body('nama').notEmpty(),
     body('nrp').notEmpty(),
     body('jurusan').notEmpty()
@@ -177,7 +180,8 @@ router.patch('/update/(:id)',upload.fields([{ name: 'gambar', maxCount: 1 }, { n
     })
 })
 })
-router.delete("/delete/(:id)", function (req, res) {
+
+router.delete("/delete/(:id)", authenticateToken,function (req, res) {
     let id = req.params.id;
   
     connection.query(
