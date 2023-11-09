@@ -15,7 +15,7 @@ router.post('/register', [
     if (!errors.isEmpty()) {
       return res.status(400).json({ error: errors.array() });
     }
-  
+    const { username, password } = req.body;
     const checkUserQuery = "SELECT * FROM users WHERE username = ?";
     connection.query(checkUserQuery, [username], (err, results) => {
       if (err) {
